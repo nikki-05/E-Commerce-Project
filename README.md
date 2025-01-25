@@ -8,6 +8,8 @@ This is a full-stack e-commerce web application built using the **MERN stack**:
 - **Node.js**: As the runtime environment for the backend.
 - **React.js**: For building the frontend user interface.
 
+## the Flow Of application
+Client makes a Postman call --> goes to application  --> it reaches server(App)-->forwards to route -->route to controller and then  --> then model --> then database 
 ## Features
 
 - User authentication and authorization (Login/Sign-up)
