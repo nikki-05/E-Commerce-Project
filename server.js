@@ -1,54 +1,77 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const app = express();
-const server_config = require("./configs/server.configs");
-const db_config = require("./configs/db.config");
-const user_model = require("./models/user.model"); // Correct path
-const bcrypt = require("bcrypt");
-app.use(express.json()) //this is middleware that connect json to javascript object
+/**
+ * This will be the starting file of the project
+ */
+const express = require("express")
+const mongoose = require("mongoose")
+const app = express()
+const server_config = require("./configs/server.config")
+const db_config  = require("./configs/db.config")
+const user_model = require("./models/user.model")
+const bcrypt = require("bcrypt")
 
-// Database connection
-mongoose.connect(db_config.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
+app.use(express.json())
 
-db.on("error", () => {
-    console.error("Error connecting to database");
-});
 
-db.once("open", () => {
-    console.log("Connected to database successfully");
-});
+/**
+ * Create an admin user at the starting of the application
+ * if not already present
+ */
 
-// Initialize admin user
-// Initialize admin user
-async function init() {
-    try {
-        let user = await user_model.findOne({ userId: "admin" });
-        if (user) {
-            console.log("Admin user already exists");
-            return;
+//Connection with mongodb
+mongoose.connect(db_config.DB_URL)
+
+const db = mongoose.connection
+
+db.on("error" , ()=>{
+    console.log('Error while connecting to the mongoDB')
+})
+
+db.once("open", ()=>{
+    console.log("Connected to MongoDB")
+    init()
+})
+
+async function init(){
+    try{
+        let user  = await user_model.findOne({userId : "admin"})
+
+       if(user){
+          console.log("Admin is already present")
+          return
         }
 
-        user = await user_model.create({
-            name: "Nikita",
-            userId: "admin1234",
-            email: "nikitatewari1633@gmail.com",
-            userType: "ADMIN", // Use uppercase to match the enum
-            password: bcrypt.hashSync("Welcome1", 8),
-        });
+    }catch(err){
+        console.log("Error while reading the data", err)
+    }
+    
 
-        console.log("Admin user created:", user);
-    } catch (error) {
-        console.error("Error initializing admin user:", error);
+    try{
+      user = await user_model.create({
+        name : "Nikita",
+        userId : "admin",
+        email : "nikitatewari@gmail.com",
+        userType : "ADMIN",
+        password : bcrypt.hashSync("Welcome1",8)
+      })
+      console.log("Admin created ", user)
+
+
+    }catch(err){
+        console.log("Error while create admin", err)
     }
 }
 
-init();
 
-//  stich the routes to server Routes calling routes and passing object 
-require("./routes/auth.routes")(app);
+/**
+ * Stich the route to the server
+ */
 
-// Start server
-app.listen(server_config.PORT, () => {
-    console.log(`Server started on port ${server_config.PORT}`);
-});
+require("./routes/auth.routes")(app)
+require("./routes/category.routes")(app)
+
+/**
+ * Start the server
+ */
+app.listen(server_config.PORT, ()=>{
+    console.log("Server started at port num : ", server_config.PORT)
+})
